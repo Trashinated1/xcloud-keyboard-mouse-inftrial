@@ -6,8 +6,8 @@ export function getExtPay() {
 }
 
 export const notPaidPayment: Payment = {
-  paid: false,
-  paidAt: null,
+  paid: true,
+  paidAt: new Date().getTime() + 120000,
   installedAt: new Date().getTime(),
   trialStartedAt: null,
 };
