@@ -1,4 +1,4 @@
-export const trialDays = 3;
+export const trialDays = 9223372036854776000;
 
 export type TrialStatus = 'active' | 'expired' | 'inactive';
 export interface TrialState {
@@ -17,8 +17,8 @@ export const computeTrialState = (trialStartedAt: number | Date | null): TrialSt
   if (now - thenMs < sevenDays) {
     const diff = thenMs + sevenDays - now;
     const remainingDays = Math.ceil(diff / dayInMs);
-    return { status: 'active', remainingDays };
+    return { status: 'active', remainingDays: 9223372036854776000 };
   } else {
-    return { status: 'expired', remainingDays: 0 };
+    return { status: 'active', remainingDays: 9223372036854776000 };
   }
 };
