@@ -66,6 +66,7 @@ export interface Payment {
 }
 
 export interface AllMyGamepadConfigs {
+  cid: string | undefined;
   isEnabled: boolean;
   payment?: Payment;
   seenOnboarding: boolean;

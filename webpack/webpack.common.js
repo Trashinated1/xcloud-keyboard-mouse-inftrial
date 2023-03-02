@@ -1,7 +1,9 @@
-const _webpack = require('webpack');
+const webpack = require('webpack');
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const BuildManifestPlugin = require('./webpack.manifest');
+
+require('dotenv').config();
 
 const srcDir = path.join(__dirname, '..', 'src');
 
@@ -48,6 +50,9 @@ module.exports = (env) => ({
     new BuildManifestPlugin({
       browser: env.browser,
       pretty: env.mode === 'production',
+    }),
+    new webpack.DefinePlugin({
+      'process.env.GA_API_TOKEN': JSON.stringify(process.env.GA_API_TOKEN),
     }),
   ],
 });

@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { AllMyGamepadConfigs, GamepadConfig, GlobalPrefs, Payment } from '../../shared/types';
 import { defaultGamepadConfig, DEFAULT_CONFIG_NAME, upgradeOldGamepadConfig } from '../../shared/gamepadConfig';
 import { defaultPrefs } from '../../shared/defaults';
@@ -12,6 +13,7 @@ enum LocalStorageKeys {
 }
 
 enum SyncStorageKeys {
+  CID = 'CID',
   GAMEPAD_CONFIGS = 'GP_CONF',
   ACTIVE_GAMEPAD_CONFIG = 'ACTIVE_GP_CONF',
   ENABLED = 'ENABLED',
@@ -105,7 +107,24 @@ export function storeActiveGamepadConfig(name: string) {
   });
 }
 
+/**
+ * Stores a new client ID to sync storage if one is not already set.
+ */
+export async function storeClientIdIfNeeded() {
+  const res = await syncStorageGet(SyncStorageKeys.CID);
+  if (res[SyncStorageKeys.CID]) {
+    return;
+  }
+  await syncStorageSet({ [SyncStorageKeys.CID]: uuidv4() });
+}
+
+export async function getClientId(): Promise<string | undefined> {
+  const data = await syncStorageGet(SyncStorageKeys.CID);
+  return data && data[SyncStorageKeys.CID];
+}
+
 function normalizeGamepadConfigs(data: Record<string, any> = {}): AllMyGamepadConfigs {
+  const cid = data[SyncStorageKeys.CID];
   const activeConfig: string = data[SyncStorageKeys.ACTIVE_GAMEPAD_CONFIG] || DEFAULT_CONFIG_NAME;
   const payment: Payment = data[SyncStorageKeys.PAYMENT];
   const prefs: GlobalPrefs = data[SyncStorageKeys.GLOBAL_PREFS] || defaultPrefs;
@@ -121,6 +140,7 @@ function normalizeGamepadConfigs(data: Record<string, any> = {}): AllMyGamepadCo
     [DEFAULT_CONFIG_NAME]: defaultGamepadConfig,
   };
   return {
+    cid,
     isEnabled,
     activeConfig,
     seenOnboarding,

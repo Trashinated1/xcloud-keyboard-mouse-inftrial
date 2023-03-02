@@ -36,12 +36,14 @@
     "@reduxjs/toolkit": "^1.8.2",
     "classnames": "^2.3.1",
     "deep-equal": "^2.0.5",
+    "dotenv": "^16.0.3",
     "extpay": "^3.0.7",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^8.0.2",
     "react-responsive-modal": "^6.2.0",
-    "redux-logger": "^3.0.6"
+    "redux-logger": "^3.0.6",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/chrome": "0.0.190",
@@ -50,6 +52,7 @@
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.13",
     "@types/redux-logger": "^3.0.9",
+    "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
     "copy-webpack-plugin": "^11.0.0",

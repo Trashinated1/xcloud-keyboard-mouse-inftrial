@@ -1,6 +1,7 @@
 import {
   getAllStoredSync,
   storeActiveGamepadConfig,
+  storeClientIdIfNeeded,
   storeGlobalPrefs,
   storeSeenOnboarding,
   updateGameName,
@@ -36,6 +37,7 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
     // First time install - enable the default gamepad config
     storeActiveGamepadConfig(DEFAULT_CONFIG_NAME);
   }
+  storeClientIdIfNeeded();
   if (typeof chrome.runtime.setUninstallURL === 'function') {
     chrome.runtime.setUninstallURL('https://forms.gle/nzToDcw1mmssMBLx6');
   }
