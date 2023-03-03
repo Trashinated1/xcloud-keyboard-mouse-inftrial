@@ -36,13 +36,13 @@ export default function UpsellModal() {
   }, [show]);
 
   const openPaymentPage = useCallback(() => {
-    postGa('page_view', { page_title: 'Login page', page_location: '/popup/upsell/payment' });
+    postGa('page_view', { page_title: 'Payment page', page_location: '/popup/upsell/payment' });
     postGa('begin_checkout', { currency: 'USD', value: 3.99, items: [{ item_name: 'Full Version' }] });
     doAndThenCloseWindow(extpay.openPaymentPage());
   }, []);
 
   const openTrialPage = useCallback(() => {
-    postGa('page_view', { page_title: 'Login page', page_location: '/popup/upsell/trial' });
+    postGa('page_view', { page_title: 'Trial page', page_location: '/popup/upsell/trial' });
     doAndThenCloseWindow(extpay.openTrialPage(`${trialDays} day`));
   }, []);
 

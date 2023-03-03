@@ -125,7 +125,7 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
       const disabled = !isEnabled || !isAllowed;
       const configName = disabled ? null : activeConfig;
       const config = disabled ? null : configs[activeConfig];
-      postGa('initialize', { paid: user.paid, seenOnboarding });
+      postGa('initialize', { paid: String(user.paid), seenOnboarding: String(seenOnboarding) });
       if (msg.gameName) {
         postGa('play', { gameName: msg.gameName });
       }
