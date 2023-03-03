@@ -104,7 +104,9 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
       const configName = disabled ? null : activeConfig;
       const config = disabled ? null : configs[activeConfig];
       postGa('initialize', { paid: user.paid, seenOnboarding });
-      postGa('play', { gameName: msg.gameName });
+      if (msg.gameName) {
+        postGa('play', { gameName: msg.gameName });
+      }
       sendResponse(initializeResponseMsg(configName, config, seenOnboarding, prefs));
     });
     // https://stackoverflow.com/a/56483156
@@ -112,7 +114,9 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
   }
   if (msg.type === MessageTypes.GAME_CHANGED) {
     console.log('Game changed to', msg.gameName);
-    postGa('play', { gameName: msg.gameName });
+    if (msg.gameName) {
+      postGa('play', { gameName: msg.gameName });
+    }
     updateGameName(msg.gameName);
     return false;
   }

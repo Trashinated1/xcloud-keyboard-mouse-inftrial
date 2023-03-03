@@ -1,12 +1,11 @@
 /* eslint-disable max-len */
+// Uses GA "Measurement Protocol" API since we can't use traditional gtag.js due to MV3 service worker
 // https://stackoverflow.com/a/73825802
 // https://developers.google.com/analytics/devguides/collection/protocol/v1/devguide
 
 import { getClientId } from '../state/chromeStoredData';
 
-// Note: This api does not give response codes if something is wrong,
-// instead of using https://www.google-analytics.com/mp/collect directly on prod,
-// one should first try https://www.google-analytics.com/debug/mp/collect.
+// Note: This api does not give response codes if something is wrong
 const debug = false;
 const rootUrl = `https://www.google-analytics.com/${debug ? 'debug/' : ''}mp/collect`;
 const extUrl = 'https://davididol.com/xcloud-keyboard-mouse/EXT';
@@ -40,11 +39,7 @@ export interface GaPostBody {
    * In the normal use of Google Analytics, the ClientID is generated for you.
    * With the Measurement Protocol, you need to provide it.
    * There is nothing particularly special about it - it just needs to be unique for each user, and stay consistent.
-   * In my extension I generate a unique id for each user of the extension and store it in local storage to persist it over time.
-   * I send this id as the ClientID to Google Analytics whenever that user does something in the extension.
-   * To see metrics for a particular Client ID within Google Analytics go to Audience -> User Explorer.
-   * Here is some more info from the Measure Protocol docs that may help:
-   * https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#cid
+   * We generate a unique id for each user of the extension and store it in sync storage to persist it over time.
    */
   client_id: string;
   /**
@@ -84,14 +79,18 @@ export async function postGa(eventName: GaEventName, inputParams: Record<string,
   // session_id: '123',
 
   console.log('GA:', eventName, params);
-  await fetch(`${rootUrl}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_TOKEN}`, {
-    method: 'POST',
-    mode: 'no-cors',
-    cache: 'no-cache',
-    referrerPolicy: 'no-referrer',
-    body: JSON.stringify({
-      client_id,
-      events: [{ name: eventName, params }],
-    }),
-  });
+  try {
+    await fetch(`${rootUrl}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_TOKEN}`, {
+      method: 'POST',
+      mode: 'no-cors',
+      cache: 'no-cache',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify({
+        client_id,
+        events: [{ name: eventName, params }],
+      }),
+    });
+  } catch (e) {
+    console.error('GA failed to send');
+  }
 }
