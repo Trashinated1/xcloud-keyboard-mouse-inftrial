@@ -22,6 +22,8 @@ module.exports = (env) => ({
     splitChunks: {
       name: 'vendor',
       chunks(chunk) {
+        // exclude background because in MV3 we can't easily async import the vendor chunk
+        // in the background service worker (without manual calls to `importScripts`)
         return chunk.name !== 'background';
       },
     },
