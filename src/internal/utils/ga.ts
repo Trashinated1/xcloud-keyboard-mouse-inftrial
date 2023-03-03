@@ -9,9 +9,25 @@ import { getClientId } from '../state/chromeStoredData';
 // one should first try https://www.google-analytics.com/debug/mp/collect.
 const debug = false;
 const rootUrl = `https://www.google-analytics.com/${debug ? 'debug/' : ''}mp/collect`;
+const extUrl = 'https://davididol.com/xcloud-keyboard-mouse/EXT';
+
 // https://developers.google.com/analytics/devguides/collection/protocol/ga4/sending-events?client_type=gtag#required_parameters
 const GA_API_TOKEN = process.env.GA_API_TOKEN;
 const GA_MEASUREMENT_ID = 'G-DKKYLRVJYT';
+
+export type GaEventName =
+  | 'exception' // https://developers.google.com/analytics/devguides/collection/ga4/exceptions
+  | 'page_view' // https://developers.google.com/analytics/devguides/collection/ga4/views?client_type=gtag
+  | 'begin_checkout' // https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events#begin_checkout
+  | 'btn_click'
+  | 'initialize'
+  | 'play'
+  | 'dismiss'
+  | 'update_prefs'
+  | 'switch_config'
+  | 'disable_config'
+  | 'modify_config'
+  | 'keyboard_command';
 
 export interface GaEventData {
   name: string;
@@ -44,22 +60,29 @@ export interface GaPostBody {
 let client_id: string | undefined;
 
 // Fire-and-forget function to send an event to GA from anywhere in the extension
-export async function postGa(eventName: string, inputParams?: object): Promise<void> {
+// TODO add queue so we can ensure proper sequencing without needing to await at the top level - avoids blocking UI
+export async function postGa(eventName: GaEventName, inputParams: Record<string, any> = {}): Promise<void> {
   if (!GA_API_TOKEN) {
     throw new Error('Missing GA API token');
   }
   if (!client_id) {
-    client_id = await getClientId(); // This could be optimized by loading this once
+    client_id = await getClientId();
   }
   if (!client_id) {
     console.error(`Ignoring GA event "${eventName}" due to missing cid`);
     return;
   }
-  const params = {
-    ...inputParams,
-    // engagement_time_msec: '100',
-    // session_id: '123',
-  };
+  let params = inputParams;
+  if (eventName === 'page_view') {
+    params = {
+      ...params,
+      page_location: extUrl + params.page_location,
+    };
+  }
+  // May also want to extend with session information, e.g.
+  // engagement_time_msec: '100',
+  // session_id: '123',
+
   console.log('GA:', eventName, params);
   await fetch(`${rootUrl}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_TOKEN}`, {
     method: 'POST',

@@ -1,11 +1,18 @@
 import { SerializedError } from '@reduxjs/toolkit';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { postGa } from '../utils/ga';
 
 interface ErrorDetailsProps {
   error?: SerializedError;
 }
 
 export default function ErrorDetails({ error }: ErrorDetailsProps) {
+  useEffect(() => {
+    postGa('exception', {
+      description: 'ext storage read' + (error ? `: ${error.message}` : ''),
+      fatal: true,
+    });
+  }, [error]);
   return (
     <div className="error">
       <p>Unable to access settings from storage</p>

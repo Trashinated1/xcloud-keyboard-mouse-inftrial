@@ -4,6 +4,16 @@ export interface GlobalPrefs {
   showControlsOverlay: boolean;
 }
 
+export interface Session {
+  timestamp: number;
+  sessionId: string;
+}
+
+export interface ClientIdAndSession {
+  clientId?: string;
+  session?: Session;
+}
+
 export enum Direction {
   UP = 'u',
   DOWN = 'd',
