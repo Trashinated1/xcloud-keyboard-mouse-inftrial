@@ -1,5 +1,5 @@
-import { CompoundButton, IButtonStyles, IStackTokens, Link, Stack } from '@fluentui/react';
-import React, { useCallback, useEffect } from 'react';
+import { Checkbox, CompoundButton, IButtonStyles, IStackTokens, Link, Stack, TooltipHost } from '@fluentui/react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal } from 'react-responsive-modal';
 import { getExtPay } from '../../shared/payments';
@@ -14,6 +14,8 @@ const extpay = getExtPay();
 // TODO pull this from a server
 const price = '$3.99';
 
+const tosTooltip = 'You must agree to the Terms of Service';
+
 const stackTokens: IStackTokens = { childrenGap: 40 };
 const buttonStyles: IButtonStyles = { root: { width: '100%' }, textContainer: { textAlign: 'center' } };
 
@@ -25,6 +27,7 @@ const doAndThenCloseWindow = async (promise: Promise<void>) => {
 };
 
 export default function UpsellModal() {
+  const [tosAgree, setTosAgree] = useState(false);
   const dispatch = useDispatch();
   const show = useAppSelector(getUpsellModalVisibility);
   const trialState = useAppSelector(getTrialState);
@@ -87,25 +90,50 @@ export default function UpsellModal() {
           <li>No added input delay - all keyboard/mouse input is instantly translated into virtual controller input</li>
           <li>More features coming soon</li>
         </ul>
+        <div>
+          <Checkbox
+            label="I agree to the TOS"
+            checked={tosAgree}
+            onChange={(_, checked) => setTosAgree(!!checked)}
+            onRenderLabel={() => (
+              <span>
+                I agree to the{' '}
+                <a href="https://davididol.com/xcloud-keyboard-mouse/tos.html" target="_blank" rel="noreferrer">
+                  Terms of Service
+                </a>
+              </span>
+            )}
+          />
+        </div>
         <Stack horizontal tokens={stackTokens} style={{ marginTop: '20px' }}>
           <Stack.Item grow>
-            <CompoundButton
-              disabled={trialState.status !== 'inactive'}
-              secondaryText={`${trialState.remainingDays} day(s) remaining`}
-              onClick={openTrialPage}
-              styles={buttonStyles}
-            >
-              {trialState.status === 'inactive'
-                ? 'Start Trial'
-                : trialState.status === 'expired'
-                ? 'Trial Expired'
-                : 'Trial Active'}
-            </CompoundButton>
+            <TooltipHost hidden={tosAgree} content={tosTooltip}>
+              <CompoundButton
+                disabled={!tosAgree || trialState.status !== 'inactive'}
+                secondaryText={`${trialState.remainingDays} day(s) remaining`}
+                onClick={openTrialPage}
+                styles={buttonStyles}
+              >
+                {trialState.status === 'inactive'
+                  ? 'Start Trial'
+                  : trialState.status === 'expired'
+                  ? 'Trial Expired'
+                  : 'Trial Active'}
+              </CompoundButton>
+            </TooltipHost>
           </Stack.Item>
           <Stack.Item grow>
-            <CompoundButton primary secondaryText={`Only ${price}`} onClick={openPaymentPage} styles={buttonStyles}>
-              Upgrade Now
-            </CompoundButton>
+            <TooltipHost hidden={tosAgree} content={tosTooltip}>
+              <CompoundButton
+                disabled={!tosAgree}
+                primary
+                secondaryText={`Only ${price}`}
+                onClick={openPaymentPage}
+                styles={buttonStyles}
+              >
+                Upgrade Now
+              </CompoundButton>
+            </TooltipHost>
           </Stack.Item>
         </Stack>
         <div style={{ fontSize: '0.8em', textAlign: 'right' }}>
