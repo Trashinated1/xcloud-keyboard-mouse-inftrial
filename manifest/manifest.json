@@ -24,6 +24,13 @@
   },
 
   "commands": {
+    "toggle-on-off": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Toggle KBM on/off"
+    },
     "profile-prev": {
       "suggested_key": {
         "default": "Ctrl+Shift+Left",

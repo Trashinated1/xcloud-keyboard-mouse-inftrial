@@ -1,3 +1,4 @@
+import { User } from 'extpay';
 import {
   getAllStoredSync,
   storeActiveGamepadConfig,
@@ -9,7 +10,7 @@ import {
 import { enableActionButton } from './internal/utils/actionButtonUtils';
 import { postGa } from './internal/utils/ga';
 import { arrayPrevOrNext } from './internal/utils/generalUtils';
-import { sendMessage, setActiveConfig } from './internal/utils/messageUtils';
+import { disableActiveConfig, sendMessage, setActiveConfig } from './internal/utils/messageUtils';
 import { DEFAULT_CONFIG_NAME } from './shared/gamepadConfig';
 import {
   MessageTypes,
@@ -25,6 +26,15 @@ import { GlobalPrefs } from './shared/types';
 
 const extpay = getExtPay();
 extpay.startBackground();
+
+let cachedPayment: User | null = null;
+async function getPaymentIfNeeded(): Promise<User> {
+  if (!cachedPayment || (!cachedPayment.paid && computeTrialState(cachedPayment.trialStartedAt).status !== 'active')) {
+    // refresh payment data if user isn't in an active state
+    cachedPayment = await getPayment();
+  }
+  return cachedPayment;
+}
 
 /*
  * This script is run as a service worker and may be killed or restarted at any time.
@@ -52,8 +62,8 @@ chrome.commands.onCommand.addListener((command) => {
     'profile-prev': true,
     'profile-next': false,
   };
-  const paymentPromise = getPayment();
-  getAllStoredSync().then(({ activeConfig, configs, prefs }) => {
+  const paymentPromise = getPaymentIfNeeded();
+  getAllStoredSync().then(({ activeConfig, isEnabled, configs, prefs }) => {
     const isPrev = commandToProfileOrder[command];
     if (command === 'show-hide-cheatsheet') {
       const newPrefs: GlobalPrefs = {
@@ -62,16 +72,28 @@ chrome.commands.onCommand.addListener((command) => {
       };
       sendMessage(updatePrefsMsg(newPrefs));
       storeGlobalPrefs(newPrefs);
-    } else if (isPrev !== undefined) {
-      // Verify user is paid
+    } else {
       paymentPromise.then((payment) => {
+        // Make sure user is allowed to activate a config
         if (payment.paid || computeTrialState(payment.trialStartedAt).status === 'active') {
-          const configsArray = Object.keys(configs);
-          const currentConfigIndex = configsArray.indexOf(activeConfig);
-          const nextConfigName =
-            currentConfigIndex === -1 ? DEFAULT_CONFIG_NAME : arrayPrevOrNext(configsArray, currentConfigIndex, isPrev);
-          const nextConfig = configs[nextConfigName];
-          setActiveConfig(nextConfigName, nextConfig);
+          if (isPrev !== undefined) {
+            // select next/prev config
+            const configsArray = Object.keys(configs);
+            const currentConfigIndex = configsArray.indexOf(activeConfig);
+            const nextConfigName =
+              currentConfigIndex === -1
+                ? DEFAULT_CONFIG_NAME
+                : arrayPrevOrNext(configsArray, currentConfigIndex, isPrev);
+            const nextConfig = configs[nextConfigName];
+            setActiveConfig(nextConfigName, nextConfig);
+          } else if (command === 'toggle-on-off') {
+            // toggle config on/off
+            if (isEnabled) {
+              disableActiveConfig();
+            } else if (activeConfig) {
+              setActiveConfig(activeConfig, configs[activeConfig]);
+            }
+          }
         }
       });
     }
@@ -97,7 +119,7 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
     console.log('Initialized', msg.gameName);
     updateGameName(msg.gameName);
     // Send any currently-active config
-    Promise.all([getAllStoredSync(), getPayment()]).then(([stored, user]) => {
+    Promise.all([getAllStoredSync(), getPaymentIfNeeded()]).then(([stored, user]) => {
       const { isEnabled, activeConfig, configs, seenOnboarding, prefs } = stored;
       const isAllowed = user.paid || computeTrialState(user.trialStartedAt).status === 'active';
       const disabled = !isEnabled || !isAllowed;
@@ -124,7 +146,7 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
     console.log('User dismissed onboarding');
     postGa('dismiss', { modal: 'onboarding' });
     storeSeenOnboarding();
-    getPayment().then((payment) => {
+    getPaymentIfNeeded().then((payment) => {
       // Automatically open trial popup if user hasn't paid and isn't already in a trial
       const trialState = computeTrialState(payment.trialStartedAt);
       if (!payment.paid && trialState.status === 'inactive') {

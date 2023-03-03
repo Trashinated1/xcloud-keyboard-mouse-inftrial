@@ -1,20 +1,21 @@
-import { createAction, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { GamepadConfig, GlobalPrefs, Payment } from '../../shared/types';
+import { AnyAction, createAction, createAsyncThunk, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { DEFAULT_CONFIG_NAME } from '../../shared/gamepadConfig';
-import { activateGamepadConfigMsg, disableGamepadMsg, updatePrefsMsg } from '../../shared/messages';
-import { getGamepadConfig, getIsAllowed, isConfigActive } from './selectors';
-import { RootState } from './store';
+import { activateGamepadConfigMsg, updatePrefsMsg } from '../../shared/messages';
+import { getPayment } from '../../shared/payments';
+import { GamepadConfig, GlobalPrefs, Payment } from '../../shared/types';
+import { postGa } from '../utils/ga';
+import { disableActiveConfig, sendMessage, setActiveConfig } from '../utils/messageUtils';
 import {
   deleteGamepadConfig,
   getAllStoredSync,
   getLocalGameStatus,
   storeGamepadConfig,
-  storeGamepadConfigEnabled,
   storeGlobalPrefs,
 } from './chromeStoredData';
-import { getPayment } from '../../shared/payments';
-import { sendMessage, setActiveConfig } from '../utils/messageUtils';
-import { postGa } from '../utils/ga';
+import { getGamepadConfig, getIsAllowed, isConfigActive } from './selectors';
+import { RootState } from './store';
+
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, AnyAction>;
 
 export const showUpsellModalAction = createAction<boolean>('upsellModal/show');
 
@@ -49,8 +50,7 @@ export const activateGamepadConfigAction = createAsyncThunk(
 
 export const disableGamepadConfigAction = createAsyncThunk('config/disable', async () => {
   postGa('disable_config');
-  await sendMessage(disableGamepadMsg());
-  await storeGamepadConfigEnabled(false);
+  await disableActiveConfig();
 });
 
 export const deleteGamepadConfigAction = createAsyncThunk(
