@@ -1,6 +1,6 @@
 import { notPaidPayment } from '../../shared/payments';
 import { computeTrialState, TrialState } from '../../shared/trial';
-import { RootState } from './store';
+import { RootState } from './typed';
 
 export const getAllGamepadConfigs = (state: RootState) => {
   return {
