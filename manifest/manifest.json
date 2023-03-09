@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
 
-  "version": "3.4",
+  "version": "3.5",
   "name": "Keyboard & Mouse for Xbox xCloud",
   "short_name": "xCloud KB&M",
   "description": "Play Xbox Cloud Gaming (Project xCloud) with a keyboard and mouse.",
