@@ -1,9 +1,10 @@
 /* eslint-disable max-len */
 // Uses GA "Measurement Protocol" API since we can't use traditional gtag.js due to MV3 service worker
 // https://stackoverflow.com/a/73825802
-// https://developers.google.com/analytics/devguides/collection/protocol/v1/devguide
 
-import { getClientId } from '../state/chromeStoredData';
+import { v4 as uuidv4 } from 'uuid';
+import { ClientIdAndSession, Session } from '../../shared/types';
+import { getClientId, getSession, storeClientId, storeSession } from '../state/chromeStoredData';
 
 // Note: This api does not give response codes if something is wrong
 const debug = false;
@@ -52,41 +53,75 @@ export interface GaPostBody {
   events?: Array<GaEventData>;
 }
 
-let client_id: string | undefined;
+let cachedClientId: string | null = null;
+let cachedSession: Session | null = null;
+
+export async function getClientIdAndSession(): Promise<ClientIdAndSession> {
+  const [maybeClientId, maybeSession] = await Promise.all([
+    cachedClientId || getClientId(),
+    cachedSession || getSession(),
+  ]);
+  const savePromises: Array<Promise<void>> = [];
+  if (!maybeClientId) {
+    cachedClientId = uuidv4();
+    savePromises.push(storeClientId(cachedClientId));
+  } else {
+    cachedClientId = maybeClientId;
+  }
+  // By default, a session ends (times out) after 30 minutes of user inactivity.
+  const sessionExpirationMs = 30 * 60 * 1000;
+  const now = new Date().getTime();
+  if (!maybeSession || now - maybeSession.startMs > sessionExpirationMs) {
+    cachedSession = { sessionId: uuidv4(), startMs: now };
+    savePromises.push(storeSession(cachedSession));
+  } else {
+    cachedSession = maybeSession;
+  }
+  await Promise.all(savePromises);
+  return { clientId: cachedClientId!, session: cachedSession! };
+}
 
 // Fire-and-forget function to send an event to GA from anywhere in the extension
 // TODO add queue so we can ensure proper sequencing without needing to await at the top level - avoids blocking UI
 export async function postGa(eventName: GaEventName, inputParams: Record<string, any> = {}): Promise<void> {
   if (!GA_API_TOKEN) {
-    throw new Error('Missing GA API token');
+    console.error('Missing GA API token');
+    return;
   }
-  if (!client_id) {
-    client_id = await getClientId();
-  }
-  if (!client_id) {
+
+  const { clientId, session } = await getClientIdAndSession();
+  if (!cachedClientId) {
     console.error(`Ignoring GA event "${eventName}" due to missing cid`);
     return;
   }
-  let params = inputParams;
+  // Extend with session information in order to show up in Realtime
+  // https://developers.google.com/analytics/devguides/collection/protocol/ga4/sending-events?client_type=gtag#recommended_parameters_for_reports
+  let params: Record<string, any> = {
+    ...inputParams,
+    // https://support.google.com/analytics/answer/11109416
+    engagement_time_msec: String(new Date().getTime() - session.startMs),
+    // https://support.google.com/analytics/answer/9191807
+    session_id: session.sessionId.toString(),
+  };
   if (eventName === 'page_view') {
     params = {
       ...params,
       page_location: extUrl + params.page_location,
     };
   }
-  // May also want to extend with session information, e.g.
-  // engagement_time_msec: '100',
-  // session_id: '123',
 
   console.log('GA:', eventName, params);
   try {
+    // update session timestamp (no await)
+    storeSession({ ...session, startMs: new Date().getTime() });
+    // send request
     await fetch(`${rootUrl}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_TOKEN}`, {
       method: 'POST',
       mode: 'no-cors',
       cache: 'no-cache',
       referrerPolicy: 'no-referrer',
       body: JSON.stringify({
-        client_id,
+        client_id: clientId,
         events: [{ name: eventName, params }],
       }),
     });

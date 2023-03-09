@@ -5,13 +5,13 @@ export interface GlobalPrefs {
 }
 
 export interface Session {
-  timestamp: number;
+  startMs: number;
   sessionId: string;
 }
 
 export interface ClientIdAndSession {
-  clientId?: string;
-  session?: Session;
+  clientId: string;
+  session: Session;
 }
 
 export enum Direction {

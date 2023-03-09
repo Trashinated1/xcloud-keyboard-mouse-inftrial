@@ -7,6 +7,10 @@ require('dotenv').config();
 
 const srcDir = path.join(__dirname, '..', 'src');
 
+if (!process.env.GA_API_TOKEN) {
+  throw new Error('Missing GA API token');
+}
+
 module.exports = (env) => ({
   entry: {
     popup: path.join(srcDir, 'popup.tsx'),

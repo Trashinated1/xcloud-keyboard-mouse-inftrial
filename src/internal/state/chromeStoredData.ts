@@ -1,5 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
-import { AllMyGamepadConfigs, GamepadConfig, GlobalPrefs, Payment } from '../../shared/types';
+import { AllMyGamepadConfigs, GamepadConfig, GlobalPrefs, Payment, Session } from '../../shared/types';
 import { defaultGamepadConfig, DEFAULT_CONFIG_NAME, upgradeOldGamepadConfig } from '../../shared/gamepadConfig';
 import { defaultPrefs } from '../../shared/defaults';
 
@@ -10,6 +9,7 @@ import { defaultPrefs } from '../../shared/defaults';
 
 enum LocalStorageKeys {
   GAME_NAME = 'GAME_NAME',
+  SESSION = 'SESSION',
 }
 
 enum SyncStorageKeys {
@@ -108,19 +108,33 @@ export function storeActiveGamepadConfig(name: string) {
 }
 
 /**
- * Stores a new client ID to sync storage if one is not already set.
+ * Stores a new client ID to sync storage.
  */
-export async function storeClientIdIfNeeded() {
-  const res = await syncStorageGet(SyncStorageKeys.CID);
-  if (res[SyncStorageKeys.CID]) {
-    return;
-  }
-  await syncStorageSet({ [SyncStorageKeys.CID]: uuidv4() });
+export function storeClientId(clientId: string) {
+  return syncStorageSet({ [SyncStorageKeys.CID]: clientId });
 }
 
-export async function getClientId(): Promise<string | undefined> {
+/**
+ * Stores a new session to local storage.
+ */
+export function storeSession(session: Session) {
+  return chrome.storage.local.set({ [LocalStorageKeys.SESSION]: session });
+}
+
+/**
+ * Gets client ID from sync storage.
+ */
+export async function getClientId(): Promise<string | null> {
   const data = await syncStorageGet(SyncStorageKeys.CID);
-  return data && data[SyncStorageKeys.CID];
+  return (data && data[SyncStorageKeys.CID]) || null;
+}
+
+/**
+ * Gets session from local storage.
+ */
+export async function getSession(): Promise<Session | null> {
+  const data = await chrome.storage.local.get(LocalStorageKeys.SESSION);
+  return (data && data[LocalStorageKeys.SESSION]) || null;
 }
 
 function normalizeGamepadConfigs(data: Record<string, any> = {}): AllMyGamepadConfigs {
