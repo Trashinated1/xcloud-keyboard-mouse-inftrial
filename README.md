@@ -48,7 +48,7 @@ Since very few games on Xbox consoles support mouse and keyboard as first-class 
 
 ### ✅ Quick enable/disable
 
-- Easily disable the mouse/keyboard override and switch back to your controller whenever you feel like it with one click of the toggle
+- Easily disable the mouse/keyboard override and switch back to your controller whenever you feel like it with one click
 
 ### ✅ Configurable sensitivity
 
@@ -62,7 +62,7 @@ Since very few games on Xbox consoles support mouse and keyboard as first-class 
 
 ### ✅ Respects your privacy
 
-- No keyboard/mouse data (or any other data for that matter) is ever recorded or sent anywhere from your computer
+- No keyboard/mouse data is ever recorded or sent anywhere from your computer
 - The extension only runs on [xCloud](https://xbox.com/play) and [gamepad-tester.com](https://gamepad-tester.com); not other sites you visit
 
 ## How to enable
@@ -81,10 +81,8 @@ There is no added input delay introduced by this extension - all keyboard/mouse 
 
 Like this extension? Why not [buy me a coffee](https://www.buymeacoffee.com/idolize)? I really appreciate it!
 
+You can also purchase the premium version directly inside the extension 🙏
+
 ## Need help?
 
 Feel free to [file an issue](https://github.com/idolize/xcloud-keyboard-mouse/issues), [post on Reddit](https://www.reddit.com/r/xcloudkeyboardmouse/), or [join the Discord discussion](https://discord.gg/5Jp9drge9m).
-
-## Development and contributing
-
-See [the contribution doc](CONTRIBUTING.md) for more information.

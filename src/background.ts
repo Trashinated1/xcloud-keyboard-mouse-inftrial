@@ -1,3 +1,4 @@
+import { User } from 'extpay';
 import {
   getAllStoredSync,
   storeActiveGamepadConfig,
@@ -6,8 +7,9 @@ import {
   updateGameName,
 } from './internal/state/chromeStoredData';
 import { enableActionButton } from './internal/utils/actionButtonUtils';
+import { postGa } from './internal/utils/ga';
 import { arrayPrevOrNext } from './internal/utils/generalUtils';
-import { sendMessage, setActiveConfig } from './internal/utils/messageUtils';
+import { disableActiveConfig, sendMessage, setActiveConfig } from './internal/utils/messageUtils';
 import { DEFAULT_CONFIG_NAME } from './shared/gamepadConfig';
 import {
   MessageTypes,
@@ -17,12 +19,21 @@ import {
   updatePrefsMsg,
   seenOnboardingMsg,
 } from './shared/messages';
-import { getExtPay } from './shared/payments';
+import { getExtPay, getPayment } from './shared/payments';
 import { computeTrialState, trialDays } from './shared/trial';
 import { GlobalPrefs } from './shared/types';
 
 const extpay = getExtPay();
 extpay.startBackground();
+
+let cachedPayment: User | null = null;
+async function getPaymentIfNeeded(): Promise<User> {
+  if (!cachedPayment || (!cachedPayment.paid && computeTrialState(cachedPayment.trialStartedAt).status !== 'active')) {
+    // refresh payment data if user isn't in an active state
+    cachedPayment = await getPayment();
+  }
+  return cachedPayment;
+}
 
 /*
  * This script is run as a service worker and may be killed or restarted at any time.
@@ -44,12 +55,13 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
 // https://developer.chrome.com/docs/extensions/reference/commands/#handling-command-events
 chrome.commands.onCommand.addListener((command) => {
   console.log('Keyboard command:', command);
+  postGa('keyboard_command', { command });
   const commandToProfileOrder: Record<string, boolean> = {
     'profile-prev': true,
     'profile-next': false,
   };
-  const userPromise = extpay.getUser();
-  getAllStoredSync().then(({ activeConfig, configs, prefs }) => {
+  const paymentPromise = getPaymentIfNeeded();
+  getAllStoredSync().then(({ activeConfig, isEnabled, configs, prefs }) => {
     const isPrev = commandToProfileOrder[command];
     if (command === 'show-hide-cheatsheet') {
       const newPrefs: GlobalPrefs = {
@@ -58,16 +70,28 @@ chrome.commands.onCommand.addListener((command) => {
       };
       sendMessage(updatePrefsMsg(newPrefs));
       storeGlobalPrefs(newPrefs);
-    } else if (isPrev !== undefined) {
-      // Verify user is paid
-      userPromise.then((user) => {
-        if (user.paid || computeTrialState(user.trialStartedAt).status === 'active') {
-          const configsArray = Object.keys(configs);
-          const currentConfigIndex = configsArray.indexOf(activeConfig);
-          const nextConfigName =
-            currentConfigIndex === -1 ? DEFAULT_CONFIG_NAME : arrayPrevOrNext(configsArray, currentConfigIndex, isPrev);
-          const nextConfig = configs[nextConfigName];
-          setActiveConfig(nextConfigName, nextConfig);
+    } else {
+      paymentPromise.then((payment) => {
+        // Make sure user is allowed to activate a config
+        if (payment.paid || computeTrialState(payment.trialStartedAt).status === 'active') {
+          if (isPrev !== undefined) {
+            // select next/prev config
+            const configsArray = Object.keys(configs);
+            const currentConfigIndex = configsArray.indexOf(activeConfig);
+            const nextConfigName =
+              currentConfigIndex === -1
+                ? DEFAULT_CONFIG_NAME
+                : arrayPrevOrNext(configsArray, currentConfigIndex, isPrev);
+            const nextConfig = configs[nextConfigName];
+            setActiveConfig(nextConfigName, nextConfig);
+          } else if (command === 'toggle-on-off') {
+            // toggle config on/off
+            if (isEnabled) {
+              disableActiveConfig();
+            } else if (activeConfig) {
+              setActiveConfig(activeConfig, configs[activeConfig]);
+            }
+          }
         }
       });
     }
@@ -93,12 +117,16 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
     console.log('Initialized', msg.gameName);
     updateGameName(msg.gameName);
     // Send any currently-active config
-    Promise.all([getAllStoredSync(), extpay.getUser()]).then(([stored, user]) => {
+    Promise.all([getAllStoredSync(), getPaymentIfNeeded()]).then(([stored, user]) => {
       const { isEnabled, activeConfig, configs, seenOnboarding, prefs } = stored;
       const isAllowed = user.paid || computeTrialState(user.trialStartedAt).status === 'active';
       const disabled = !isEnabled || !isAllowed;
       const configName = disabled ? null : activeConfig;
       const config = disabled ? null : configs[activeConfig];
+      postGa('initialize', { paid: String(user.paid), seenOnboarding: String(seenOnboarding) });
+      if (msg.gameName) {
+        postGa('play', { gameName: msg.gameName });
+      }
       sendResponse(initializeResponseMsg(configName, config, seenOnboarding, prefs));
     });
     // https://stackoverflow.com/a/56483156
@@ -106,16 +134,20 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
   }
   if (msg.type === MessageTypes.GAME_CHANGED) {
     console.log('Game changed to', msg.gameName);
+    if (msg.gameName) {
+      postGa('play', { gameName: msg.gameName });
+    }
     updateGameName(msg.gameName);
     return false;
   }
   if (msg.type === MessageTypes.SEEN_ONBOARDING) {
     console.log('User dismissed onboarding');
+    postGa('dismiss', { modal: 'onboarding' });
     storeSeenOnboarding();
-    extpay.getUser().then((user) => {
+    getPaymentIfNeeded().then((payment) => {
       // Automatically open trial popup if user hasn't paid and isn't already in a trial
-      const trialState = computeTrialState(user.trialStartedAt);
-      if (!user.paid && trialState.status === 'inactive') {
+      const trialState = computeTrialState(payment.trialStartedAt);
+      if (!payment.paid && trialState.status === 'inactive') {
         extpay.openTrialPage(`${trialDays} day`);
       }
     });

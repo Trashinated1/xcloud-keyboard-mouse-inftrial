@@ -1,8 +1,9 @@
 import { Checkbox, PrimaryButton, IIconProps, Separator } from '@fluentui/react';
-import React, { useCallback, FormEvent } from 'react';
+import React, { useCallback, FormEvent, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { updatePrefsAction } from '../state/actions';
 import { getGlobalPrefs } from '../state/selectors';
+import { postGa } from '../utils/ga';
 import { useAppSelector } from './hooks/reduxHooks';
 import ShortcutCommandsList from './ShortcutCommandsList';
 
@@ -15,10 +16,15 @@ interface GlobalPrefsEditorProps {
 export default function GlobalPrefsEditor({ goBack }: GlobalPrefsEditorProps) {
   const dispatch = useDispatch();
   const prefs = useAppSelector(getGlobalPrefs);
+  useEffect(() => {
+    postGa('page_view', { page_title: 'Global prefs editor', page_location: '/popup/prefs' });
+  }, []);
 
   const handleChange = useCallback(
     (e?: FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-      dispatch(updatePrefsAction({ ...prefs, showControlsOverlay: !!checked }));
+      const updated = { showControlsOverlay: !!checked };
+      postGa('update_prefs', updated);
+      dispatch(updatePrefsAction({ ...prefs, ...updated }));
     },
     [dispatch, prefs],
   );

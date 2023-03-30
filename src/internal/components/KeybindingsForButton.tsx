@@ -1,4 +1,13 @@
-import React, { memo, MouseEventHandler, useCallback, useMemo, useRef, useState, WheelEventHandler } from 'react';
+import React, {
+  memo,
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  WheelEventHandler,
+} from 'react';
 import { IconButton, TooltipHost, DirectionalHint } from '@fluentui/react';
 import { Modal } from 'react-responsive-modal';
 import 'react-responsive-modal/styles.css';
@@ -6,6 +15,7 @@ import { KeyMap, MouseButtons } from '../../shared/types';
 import { camelToSpace } from '../../shared/formattingUtils';
 import { ExclamationCircle } from './icons';
 import { MAX_BINDINGS_PER_BUTTON } from '../../shared/gamepadConfig';
+import { postGa } from '../utils/ga';
 
 interface TrippleKeybindProps {
   button: string;
@@ -24,6 +34,12 @@ function KeybindingsForButton({ button, value, onChange, readOnly, error, useSpa
   const [isListening, setIsListening] = useState(false);
   const keyListener = useRef<null | ((e: KeyboardEvent) => void)>(null);
   const codes = useMemo(() => (!value ? [] : Array.isArray(value) ? value : [value]), [value]);
+
+  useEffect(() => {
+    if (isListening) {
+      postGa('page_view', { page_title: 'Keybind update modal', page_location: '/popup/keybinds/listen-modal' });
+    }
+  }, [isListening]);
 
   const handleCancelListen = useCallback(() => {
     setIsListening(false);

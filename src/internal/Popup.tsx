@@ -1,6 +1,6 @@
 import { Spinner, SpinnerSize } from '@fluentui/react';
 import classnames from 'classnames';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from './components/Header';
 import { useAppSelector } from './components/hooks/reduxHooks';
 import useGamepadConfigs from './components/hooks/useGamepadConfigs';
@@ -8,11 +8,15 @@ import useGameName from './components/hooks/useGameStatus';
 import MainConfigEditor from './components/MainConfigEditor';
 import UpsellModal from './components/UpsellModal';
 import { getPaymentStatus } from './state/selectors';
+import { postGa } from './utils/ga';
 
 export default function Popup() {
   const { activeConfig, status, isEnabled, configs, error } = useGamepadConfigs();
   const { gameName } = useGameName();
   const paymentStatus = useAppSelector(getPaymentStatus);
+  useEffect(() => {
+    postGa('page_view', { page_title: 'Popup config editor', page_location: '/popup' });
+  }, []);
 
   return (
     <div className={classnames('popup vertical', paymentStatus !== 'success' && 'centered')}>

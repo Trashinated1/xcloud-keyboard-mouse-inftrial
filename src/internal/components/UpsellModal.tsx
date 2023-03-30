@@ -1,11 +1,12 @@
 import { CompoundButton, IButtonStyles, IStackTokens, Link, Stack } from '@fluentui/react';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal } from 'react-responsive-modal';
 import { getExtPay } from '../../shared/payments';
 import { trialDays } from '../../shared/trial';
 import { showUpsellModalAction } from '../state/actions';
 import { getIsAllowed, getTrialState, getUpsellModalVisibility } from '../state/selectors';
+import { postGa } from '../utils/ga';
 import { useAppSelector } from './hooks/reduxHooks';
 
 const extpay = getExtPay();
@@ -28,20 +29,30 @@ export default function UpsellModal() {
   const show = useAppSelector(getUpsellModalVisibility);
   const trialState = useAppSelector(getTrialState);
   const isAllowed = useAppSelector(getIsAllowed);
+  useEffect(() => {
+    if (show) {
+      postGa('page_view', { page_title: 'Upsell modal', page_location: '/popup/upsell' });
+    }
+  }, [show]);
 
   const openPaymentPage = useCallback(() => {
+    postGa('page_view', { page_title: 'Payment page', page_location: '/popup/upsell/payment' });
+    postGa('begin_checkout', { currency: 'USD', value: 3.99, items: [{ item_name: 'Full Version' }] });
     doAndThenCloseWindow(extpay.openPaymentPage());
   }, []);
 
   const openTrialPage = useCallback(() => {
+    postGa('page_view', { page_title: 'Trial page', page_location: '/popup/upsell/trial' });
     doAndThenCloseWindow(extpay.openTrialPage(`${trialDays} day`));
   }, []);
 
   const openLoginPage = useCallback(() => {
+    postGa('page_view', { page_title: 'Login page', page_location: '/popup/upsell/login' });
     doAndThenCloseWindow(extpay.openLoginPage());
   }, []);
 
   const handleClose = useCallback(async () => {
+    postGa('dismiss', { modal: 'upsell' });
     dispatch(showUpsellModalAction(false));
   }, [dispatch]);
 
@@ -97,7 +108,10 @@ export default function UpsellModal() {
             </CompoundButton>
           </Stack.Item>
         </Stack>
-        <div style={{ fontSize: '0.8em', textAlign: 'right' }}>
+        <div style={{ fontSize: '0.8em', display: 'flex', justifyContent: 'space-between' }}>
+          <Link href="https://davididol.com/xcloud-keyboard-mouse/tos.html" target="_blank" style={{ color: '#666' }}>
+            Terms of Service
+          </Link>
           <Link onClick={openLoginPage}>Already paid?</Link>
         </div>
       </div>

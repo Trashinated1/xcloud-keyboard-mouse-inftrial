@@ -10,6 +10,7 @@ import StickSelector from './StickSelector';
 import useKeyConfigEditorState from './hooks/useKeyConfigEditorState';
 import { exportConfig } from '../utils/importExport';
 import KeybindingsTable from './KeybindingsTable';
+import { postGa } from '../utils/ga';
 
 const saveIcon: IIconProps = { iconName: 'Save' };
 const useIcon: IIconProps = { iconName: 'SkypeCheck' };
@@ -93,6 +94,7 @@ function GamepadConfigEditor({ name, onSubmitChanges, onCancelCreate, onActivate
   }, [name, onDelete]);
 
   const handleExport = useCallback(() => {
+    postGa('btn_click', { name: 'export-config' });
     exportConfig(state.config, name);
   }, [state.config, name]);
 

@@ -4,6 +4,16 @@ export interface GlobalPrefs {
   showControlsOverlay: boolean;
 }
 
+export interface Session {
+  startMs: number;
+  sessionId: string;
+}
+
+export interface ClientIdAndSession {
+  clientId: string;
+  session: Session;
+}
+
 export enum Direction {
   UP = 'u',
   DOWN = 'd',
@@ -66,6 +76,7 @@ export interface Payment {
 }
 
 export interface AllMyGamepadConfigs {
+  cid: string | undefined;
   isEnabled: boolean;
   payment?: Payment;
   seenOnboarding: boolean;

@@ -25,6 +25,3 @@ export const store = configureStore({
     prefs: prefsReducer,
   },
 });
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;

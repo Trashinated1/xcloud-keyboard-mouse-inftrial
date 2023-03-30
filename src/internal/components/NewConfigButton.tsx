@@ -4,6 +4,7 @@ import { GamepadConfig } from '../../shared/types';
 import { PlusCircleIcon } from './icons';
 import { importConfig } from '../utils/importExport';
 import useIsMounted from './hooks/useIsMounted';
+import { postGa } from '../utils/ga';
 
 interface NewConfigButtonProps {
   allConfigs: Record<string, GamepadConfig>;
@@ -26,12 +27,14 @@ export default function NewConfigButton({ disabled, allConfigs, onCreate, onImpo
   }, [name, allConfigs]);
   const triggerRef = useRef<null | HTMLButtonElement>(null);
   const handleNewBtnClick = useCallback(() => {
+    postGa('btn_click', { name: 'open-new-preset-dialog' });
     setIsOpen(!isOpen);
   }, [isOpen]);
   const handleClose = useCallback(() => {
     setIsOpen(false);
   }, []);
   const handleImport = useCallback(() => {
+    postGa('btn_click', { name: 'import-preset' });
     importConfig()
       .then((config) => {
         onImport(name, config);
@@ -44,6 +47,7 @@ export default function NewConfigButton({ disabled, allConfigs, onCreate, onImpo
       });
   }, [isMounted, name, onImport]);
   const handleSubmit = useCallback(() => {
+    postGa('btn_click', { name: 'create-preset' });
     onCreate(name);
   }, [onCreate, name]);
   const handleKeyPress: KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement> = useCallback(
@@ -86,7 +90,7 @@ export default function NewConfigButton({ disabled, allConfigs, onCreate, onImpo
               onKeyPress={handleKeyPress}
               onChange={(e) => setName(e.currentTarget.value)}
             />
-            {isTaken ? <div className="error margin-top-s">Config with that name already exists!</div> : null}
+            {isTaken ? <div className="error margin-top-s">Preset with that name already exists!</div> : null}
             <div className="horizontal space-between margin-top-s">
               <DefaultButton disabled={!name || isTaken} onClick={handleImport}>
                 Import File

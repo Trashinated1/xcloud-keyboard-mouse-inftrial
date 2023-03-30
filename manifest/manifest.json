@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
 
+  "version": "3.5",
   "name": "Keyboard & Mouse for Xbox xCloud",
   "short_name": "xCloud KB&M",
   "description": "Play Xbox Cloud Gaming (Project xCloud) with a keyboard and mouse.",
-  "version": "3.3",
   "author": "David Idol",
 
   "icons": {
@@ -24,6 +24,13 @@
   },
 
   "commands": {
+    "toggle-on-off": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Toggle KBM on/off"
+    },
     "profile-prev": {
       "suggested_key": {
         "default": "Ctrl+Shift+Left",

@@ -26,6 +26,8 @@ jobs:
       # Create Chrome artifacts
       - name: Create Chrome artifacts
         run: npm run build:chrome
+        env:
+          GA_API_TOKEN: ${{ secrets.GA_API_TOKEN }}
       - uses: actions/upload-artifact@v2
         with:
           name: ChromeExtension
@@ -37,6 +39,8 @@ jobs:
       # Create Edge artifacts
       - name: Create Edge artifacts
         run: npm run build:edge
+        env:
+          GA_API_TOKEN: ${{ secrets.GA_API_TOKEN }}
       - uses: actions/upload-artifact@v2
         with:
           name: EdgeExtension
@@ -47,6 +51,8 @@ jobs:
       # Create Firefox artifacts
       - name: Create Firefox artifacts
         run: npm run build:firefox
+        env:
+          GA_API_TOKEN: ${{ secrets.GA_API_TOKEN }}
       - uses: actions/upload-artifact@v2
         with:
           name: FFExtension

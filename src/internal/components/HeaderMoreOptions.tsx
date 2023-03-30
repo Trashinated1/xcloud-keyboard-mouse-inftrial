@@ -5,6 +5,7 @@ import { fluentXboxTheme } from './theme';
 import { getPayment } from '../state/selectors';
 import { showUpsellModalAction } from '../state/actions';
 import { useAppSelector } from './hooks/reduxHooks';
+import { postGa } from '../utils/ga';
 
 const specialColor = { color: '#D2042D' };
 
@@ -57,6 +58,7 @@ export default function HeaderMoreOptions() {
   const payment = useAppSelector(getPayment);
 
   const handlePayClick = useCallback(() => {
+    postGa('btn_click', { name: 'upgrade-menu-item' });
     dispatch(showUpsellModalAction(true));
   }, [dispatch]);
 
