@@ -81,8 +81,19 @@ There is no added input delay introduced by this extension - all keyboard/mouse 
 
 Like this extension? Why not [buy me a coffee](https://www.buymeacoffee.com/idolize)? I really appreciate it!
 
-You can also purchase the premium version directly inside the extension 🙏
 
-## Need help?
+## Notes about the crack
 
-Feel free to [file an issue](https://github.com/idolize/xcloud-keyboard-mouse/issues), [post on Reddit](https://www.reddit.com/r/xcloudkeyboardmouse/), or [join the Discord discussion](https://discord.gg/5Jp9drge9m).
+Replace the ID in [this file](https://github.com/NodeMixaholic/xcloud-keyboard-mouse-inftrial/blob/master/src/shared/payments.ts) with your [ExtPay](https://extensionpay.com/home) app ID.
+
+Run these commands to compile (assuming you have nodejs with npm, as well as you've cloned the repo.)
+
+```
+npm i
+npm run build:dev:chrome
+```
+
+It should output to dist, go to your extensions page and import it as an unpacked extension. Now just use your ExtensionPay login email info as well as a fake card to "test pay", then enter your password as according to the info provided on the payment page. You should now have a perma-crack.
+
+
+Note that if you build this non-dev, or publish it to a web store, you will only have the option to pay or do a semi-perm free trial, but you can only use each email you have once per browser.
