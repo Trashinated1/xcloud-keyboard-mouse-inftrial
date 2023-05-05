@@ -95,5 +95,6 @@ npm run build:dev:chrome
 
 It should output to dist, go to your extensions page and import it as an unpacked extension. Now just use your ExtensionPay login email info as well as a fake card to "test pay", then enter your password as according to the info provided on the payment page. You should now have a perma-crack.
 
+Use [this tool](https://www.vccgenerator.org/visa-card-generator-result/) to generate a fake card for the "test" mode.
 
-Note that if you build this non-dev, or publish it to a web store, you will only have the option to pay or do a semi-perm free trial, but you can only use each email you have once per browser.
+Note that if you build this non-dev, dont change the id, or publish it to a web store, you will only have the option to pay or do a semi-perm free trial, but you can only use each email you have once per browser.
