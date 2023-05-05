@@ -12,7 +12,7 @@ import { useAppSelector } from './hooks/reduxHooks';
 const extpay = getExtPay();
 
 // TODO pull this from a server
-const price = '$3.99';
+const price = '$0.00';
 
 const stackTokens: IStackTokens = { childrenGap: 40 };
 const buttonStyles: IButtonStyles = { root: { width: '100%' }, textContainer: { textAlign: 'center' } };
@@ -37,7 +37,7 @@ export default function UpsellModal() {
 
   const openPaymentPage = useCallback(() => {
     postGa('page_view', { page_title: 'Payment page', page_location: '/popup/upsell/payment' });
-    postGa('begin_checkout', { currency: 'USD', value: 3.99, items: [{ item_name: 'Full Version' }] });
+    postGa('begin_checkout', { currency: 'USD', value: 0.00, items: [{ item_name: 'Full Version' }] });
     doAndThenCloseWindow(extpay.openPaymentPage());
   }, []);
 
