@@ -3,7 +3,8 @@ import { postGa } from '../internal/utils/ga';
 import { Payment } from './types';
 
 export function getExtPay() {
-  return ExtPay('keyboard-and-mouse-for-xbox-xcloud');
+  //return ExtPay('keyboard-and-mouse-for-xbox-xcloud');
+  return ExtPay('xbkmc'); //REPLACE ME WITH YOUR ExtensionPay ID
 }
 
 export async function getPayment() {
