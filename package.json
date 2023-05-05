@@ -1,8 +1,8 @@
 {
-  "name": "xcloud-keyboard-mouse",
+  "name": "xcloud-keyboard-mouse-crack",
   "private": true,
   "description": "Browser extension for controlling xCloud using a keyboard and mouse",
-  "author": "David Idol",
+  "author": "Sam Lord",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
   "dependencies": {
     "@fluentui/react": "^8.106.3",
     "@reduxjs/toolkit": "^1.9.3",
+    "ajv-formats": "^2.1.1",
     "classnames": "^2.3.2",
     "deep-equal": "^2.2.0",
     "extpay": "^3.0.7",
