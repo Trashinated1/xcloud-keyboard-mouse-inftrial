@@ -14,11 +14,7 @@
 <h3 align="center">Download</h3>
 
 <p align="center">
-<a href="https://chrome.google.com/webstore/detail/keyboard-mouse-for-xbox-x/nmfedkijhhigaikbadoijiolmjjgoimd"><img src="docs/assets/dl_chrome.svg" height="58" alt="Download for Chrome"></a>
-<a href="https://microsoftedge.microsoft.com/addons/detail/keyboard-mouse-for-xbox/ddgechhgijdmijagmnbhppbogpeflgih"><img src="docs/assets/dl_edge.png" height="58" alt="Download for Edge"></a>
-<a href="https://addons.mozilla.org/firefox/addon/keyboard-mouse-for-xbox-xcloud/"><img src="docs/assets/dl_firefox.svg" height="58" alt="Download for Firefox"></a>
-<a href="https://github.com/idolize/xcloud-keyboard-mouse/issues/13"><img src="docs/assets/dl_safari.svg" height="58" alt="Safari Info"></a>
-</p>
+<a href="https://github.com/NodeMixaholic/xcloud-keyboard-mouse-inftrial">Build from source.</a>
 
 ***
 
